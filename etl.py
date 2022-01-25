@@ -6,6 +6,17 @@ from sql_queries import *
 
 
 def process_song_file(cur, filepath):
+    """
+    Description: This function performs ETL on song_data. It extracts data from song_data, transforms 
+    it into a list, then loads values into artist_data by calling artist_table_insert query.  
+    
+    Parameters: 
+    cur: the cursor object allows Python to execute PostgreSQL commands in a database session 
+    filepath: song data file path
+    
+    Returns:
+        None
+    """
     # open song file
     df = pd.read_json(filepath,lines=True)
 
@@ -19,6 +30,18 @@ def process_song_file(cur, filepath):
 
 
 def process_log_file(cur, filepath):
+    """
+    This function performs ETL on log_file. It reads and extracts JSON file in director log_file, transforms 
+    data such as timestamp, user data and songplay records, then loads into time_table, user_table and songplay_data. 
+    
+    Parameters: 
+    cur:  cursor object allows python to execute postgresql commands in a database session
+    filepath: log_file data path
+    
+    Returns: 
+        None
+    """
+    
     # open log file
     df = pd.read_json(filepath,lines=True)
 
@@ -70,10 +93,28 @@ def process_log_file(cur, filepath):
                      row.sessionId,
                      row.location,
                      row.userAgent)
-        cur.execute(songplay_table_insert, songplay_data)
+        if None in songplay_data:
+            continue
+        else:
+            print(songplay_data)
+            cur.execute(songplay_table_insert, songplay_data)
 
 
 def process_data(cur, conn, filepath, func):
+    """
+    This function processes all files (directories and subdirectories), then appends to all_files list. 
+    Then returns number of files found iterating over files and processes. 
+    
+    
+    Arguments: 
+    cur: cursor object allows python to execute postgresql commands during database session 
+    conn: connection created to database
+    filepath: filepath 
+    func: 
+
+    
+        
+    """
     # get all files matching extension from directory
     all_files = []
     for root, dirs, files in os.walk(filepath):
@@ -93,6 +134,13 @@ def process_data(cur, conn, filepath, func):
 
 
 def main():
+    """
+    This main() is related to Python module. Whenever it is called, it builds ETL for Sparkify. 
+    
+    Instantiates a session to the database, acquires a cursor object to process SQL queries, then processes 
+    both the song and the log data. 
+    
+    """
     conn = psycopg2.connect("host=127.0.0.1 dbname=sparkifydb user=student password=student")
     cur = conn.cursor()
 
